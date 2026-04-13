@@ -1,5 +1,5 @@
 # TikTok-Quantum
-Quantum mathematics and qubits meets TikTok 
+Quantum mathematics and qubits meet TikTok 
 
 ## AI contribution setup
 
