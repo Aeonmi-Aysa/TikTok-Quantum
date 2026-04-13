@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>TikTok Quantum ⚛️</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <!-- ===== App Shell ===== -->
+  <div id="app">
+
+    <!-- Left sidebar -->
+    <aside class="sidebar sidebar--left">
+      <div class="logo">
+        <span class="logo__atom">⚛️</span>
+        <span class="logo__text">Quantum<br>Feed</span>
+      </div>
+      <nav class="nav">
+        <a class="nav__item nav__item--active" href="#" data-view="feed">
+          <span class="nav__icon">🏠</span><span class="nav__label">Feed</span>
+        </a>
+        <a class="nav__item" href="#" data-view="simulator">
+          <span class="nav__icon">🔬</span><span class="nav__label">Simulator</span>
+        </a>
+        <a class="nav__item" href="#" data-view="glossary">
+          <span class="nav__icon">📚</span><span class="nav__label">Glossary</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main content area -->
+    <main class="main" id="main-content">
+
+      <!-- ---- FEED VIEW ---- -->
+      <section id="view-feed" class="view view--active">
+        <div class="feed" id="feed-container">
+          {% for card in cards %}
+          <article
+            class="card"
+            id="card-{{ card.id }}"
+            data-card-id="{{ card.id }}"
+            style="--card-index: {{ loop.index0 }}"
+          >
+            <div class="card__bg card__bg--{{ loop.index0 % 5 }}"></div>
+            <div class="card__content">
+              <div class="card__emoji">{{ card.emoji }}</div>
+              <h2 class="card__title">{{ card.title }}</h2>
+              <p class="card__tagline">{{ card.tagline }}</p>
+
+              <div class="card__body">
+                <pre class="card__math">{{ card.body }}</pre>
+              </div>
+
+              <div class="card__circuit-badge">
+                <span class="badge">🔧 {{ card.circuit }}</span>
+              </div>
+
+              <div class="card__tags">
+                {% for tag in card.tags %}
+                <span class="tag">{{ tag }}</span>
+                {% endfor %}
+              </div>
+            </div>
+
+            <!-- Right action bar (TikTok-style) -->
+            <div class="card__actions">
+              <button class="action-btn" data-action="like" data-card="{{ card.id }}" title="Like">
+                ❤️
+                <span class="action-btn__count" id="likes-{{ card.id }}">0</span>
+              </button>
+              <button class="action-btn" data-action="simulate" data-card="{{ card.id }}" title="Simulate in Quantum Lab">
+                ⚗️
+                <span class="action-btn__count">Lab</span>
+              </button>
+              <button class="action-btn" data-action="share" data-card="{{ card.id }}" title="Share">
+                🔗
+                <span class="action-btn__count">Share</span>
+              </button>
+            </div>
+
+            <!-- Scroll hint on first card -->
+            {% if loop.first %}
+            <div class="scroll-hint">Scroll ↓ to explore</div>
+            {% endif %}
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <!-- ---- SIMULATOR VIEW ---- -->
+      <section id="view-simulator" class="view">
+        <div class="simulator">
+          <h1 class="simulator__title">⚗️ Quantum Circuit Lab</h1>
+          <p class="simulator__subtitle">Build and run quantum circuits interactively</p>
+
+          <div class="sim-controls">
+            <label class="sim-label">Qubits
+              <select id="sim-qubits" class="sim-select">
+                <option value="1">1 qubit</option>
+                <option value="2" selected>2 qubits</option>
+                <option value="3">3 qubits</option>
+                <option value="4">4 qubits</option>
+              </select>
+            </label>
+
+            <div class="gate-palette" id="gate-palette">
+              <span class="gate-palette__label">Gates:</span>
+              {% set gates = [("H","Hadamard"),("X","Pauli-X"),("Y","Pauli-Y"),("Z","Pauli-Z"),("S","S gate"),("T","T gate"),("CX","CNOT"),("SWAP","SWAP")] %}
+              {% for g, desc in gates %}
+              <button class="gate-btn" data-gate="{{ g }}" title="{{ desc }}">{{ g }}</button>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Circuit builder -->
+          <div class="circuit-builder" id="circuit-builder">
+            <div class="circuit-steps" id="circuit-steps">
+              <p class="circuit-empty">Click gates above to add them, then choose target qubits.</p>
+            </div>
+            <div class="circuit-actions">
+              <button class="btn btn--primary" id="btn-run">▶ Run Circuit</button>
+              <button class="btn btn--secondary" id="btn-clear">🗑 Clear</button>
+              <button class="btn btn--secondary" id="btn-bell">⚡ Bell State</button>
+            </div>
+          </div>
+
+          <!-- Results -->
+          <div class="sim-results" id="sim-results" hidden>
+            <h2 class="sim-results__title">📊 Results</h2>
+            <div class="state-vector" id="state-vector"></div>
+            <div class="prob-bars" id="prob-bars"></div>
+            <div class="bloch-info" id="bloch-info"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---- GLOSSARY VIEW ---- -->
+      <section id="view-glossary" class="view">
+        <div class="glossary">
+          <h1 class="glossary__title">📚 Quantum Glossary</h1>
+          <p class="glossary__subtitle">Essential terms for your quantum journey</p>
+          <dl class="glossary-list" id="glossary-list">
+            <!-- populated by JS -->
+          </dl>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Right sidebar (trending) -->
+    <aside class="sidebar sidebar--right">
+      <h3 class="sidebar__heading">Trending</h3>
+      <ul class="trending" id="trending-list">
+        <li class="trending__item">🔥 #Superposition</li>
+        <li class="trending__item">💫 #Entanglement</li>
+        <li class="trending__item">🚀 #GroversAlgorithm</li>
+        <li class="trending__item">🔐 #PostQuantum</li>
+        <li class="trending__item">🌀 #BlochSphere</li>
+      </ul>
+
+      <div class="sidebar__divider"></div>
+
+      <h3 class="sidebar__heading">Quick Simulate</h3>
+      <div class="quick-states" id="quick-states">
+        <button class="quick-btn" data-state="zero">|0⟩</button>
+        <button class="quick-btn" data-state="one">|1⟩</button>
+        <button class="quick-btn" data-state="plus">|+⟩</button>
+        <button class="quick-btn" data-state="minus">|−⟩</button>
+      </div>
+      <div class="quick-result" id="quick-result"></div>
+    </aside>
+
+  </div><!-- /#app -->
+
+  <!-- Gate-target modal -->
+  <div class="modal" id="gate-modal" hidden>
+    <div class="modal__box">
+      <h3 class="modal__title">Select target qubit(s)</h3>
+      <div class="modal__targets" id="modal-targets"></div>
+      <div class="modal__actions">
+        <button class="btn btn--primary" id="modal-confirm">Add Gate</button>
+        <button class="btn btn--secondary" id="modal-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
