@@ -20,9 +20,9 @@ jobs:
 
       - name: Show commit metadata
         run: |
-          echo "Actor: $GITHUB_ACTOR"
-          echo "Branch: $GITHUB_REF_NAME"
-          echo "Commit: $GITHUB_SHA"
+          echo "Actor: ${{ github.actor }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
 
       - name: List changed files
         run: |
