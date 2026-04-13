@@ -11,4 +11,4 @@ This repository is configured to accept file pushes from AI agents (ChatGPT Code
 
 When these branches receive a push, the intake workflow runs and reports the latest changed files.
 
-See `/home/runner/work/TikTok-Quantum/TikTok-Quantum/CONTRIBUTING.md` for the exact push flow.
+See `CONTRIBUTING.md` for the exact push flow.
