@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard — Quantum Social</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+:root{
+  --bg:#07070f;--surface:#0d0d1a;--card:#111120;--border:#1a1a2e;
+  --accent:#7c3aed;--cyan:#06b6d4;--green:#10b981;--yellow:#f59e0b;
+  --red:#ef4444;--text:#e2e8f0;--muted:#64748b;
+  --glow:rgba(124,58,237,0.25);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* LAYOUT */
+.shell{display:flex;min-height:100vh;}
+.sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:50;}
+.main{margin-left:240px;flex:1;padding:32px;}
+@media(max-width:768px){.sidebar{transform:translateX(-100%);transition:transform 0.3s;}.sidebar.open{transform:translateX(0);}.main{margin-left:0;padding:16px;}}
+
+/* SIDEBAR */
+.sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.sidebar-glyph{font-size:18px;filter:drop-shadow(0 0 8px var(--accent));}
+.sidebar-name{font-size:13px;font-weight:800;letter-spacing:2.5px;color:#fff;}
+.sidebar-tier{margin:0 12px 8px;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid var(--border);}
+.sidebar-tier-label{font-size:9px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;}
+.sidebar-tier-name{font-size:13px;font-weight:800;margin-top:2px;}
+.tier-color-waveform{color:var(--cyan);}
+.tier-color-entangle{color:#a78bfa;}
+.tier-color-omega_core{color:var(--yellow);}
+.sidebar-nav{flex:1;padding:8px 0;overflow-y:auto;}
+.nav-section{padding:12px 16px 4px;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;transition:all 0.15s;border-radius:0;color:var(--muted);font-size:13px;font-weight:500;text-decoration:none;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(255,255,255,0.03);color:var(--text);}
+.nav-item.active{color:var(--cyan);border-left-color:var(--cyan);background:rgba(6,182,212,0.05);}
+.nav-item .icon{font-size:15px;width:18px;text-align:center;}
+.nav-locked{opacity:0.35;cursor:not-allowed;pointer-events:none;}
+.nav-badge{margin-left:auto;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;background:rgba(124,58,237,0.15);color:var(--accent);letter-spacing:0.5px;}
+.sidebar-footer{padding:16px;border-top:1px solid var(--border);}
+.user-pill{display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02);}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;}
+.user-email{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;}
+.btn-logout-small{font-size:10px;color:var(--muted);cursor:pointer;background:none;border:none;padding:2px;}
+.btn-logout-small:hover{color:var(--red);}
+
+/* PAGE SECTIONS */
+.page{display:none;}
+.page.active{display:block;}
+.page-header{margin-bottom:28px;}
+.page-title{font-size:24px;font-weight:900;margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--muted);}
+
+/* CARDS */
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+@media(max-width:900px){.grid-3,.grid-4{grid-template-columns:repeat(2,1fr);}.grid-2{grid-template-columns:1fr;}}
+@media(max-width:600px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;}
+.card:hover{border-color:rgba(124,58,237,0.25);}
+.card-title{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:12px;}
+
+/* STAT CARDS */
+.stat-val{font-size:32px;font-weight:900;line-height:1;}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:6px;}
+
+/* FEATURE GRID */
+.feature-list{display:flex;flex-direction:column;gap:8px;}
+.feature-row{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border-radius:8px;font-size:13px;}
+.feature-icon{font-size:14px;width:20px;flex-shrink:0;}
+.feature-name{flex:1;color:var(--text);}
+.feature-status{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;}
+.fs-on{background:rgba(16,185,129,0.1);color:var(--green);}
+.fs-off{background:rgba(100,116,139,0.1);color:var(--muted);}
+.fs-partial{background:rgba(245,158,11,0.1);color:var(--yellow);}
+
+/* SOCIAL ACCOUNTS */
+.acct-list{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+.acct-card{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.acct-icon{font-size:22px;flex-shrink:0;}
+.acct-info{flex:1;}
+.acct-handle{font-size:13px;font-weight:700;}
+.acct-platform{font-size:11px;color:var(--muted);text-transform:capitalize;}
+.acct-remove{background:none;border:1px solid rgba(239,68,68,0.2);color:var(--red);padding:5px 10px;border-radius:6px;font-size:10px;cursor:pointer;font-weight:700;}
+.acct-remove:hover{background:rgba(239,68,68,0.1);}
+.add-acct-form{display:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:8px;}
+.add-acct-form.open{display:block;}
+.slot-meter{background:var(--surface);border-radius:6px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;font-size:12px;color:var(--muted);}
+.slot-bar{width:100%;height:4px;background:var(--border);border-radius:4px;margin-top:6px;overflow:hidden;}
+.slot-fill{height:100%;background:var(--cyan);border-radius:4px;transition:width 0.3s;}
+.slot-full .slot-fill{background:var(--red);}
+
+/* FORMS */
+.form-group{margin-bottom:14px;}
+.form-label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
+.form-input{width:100%;background:#0a0a15;border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:13px;outline:none;transition:border-color 0.2s;}
+.form-input:focus{border-color:var(--accent);}
+.form-input::placeholder{color:var(--muted);}
+.form-select{width:100%;background:#0a0a15;border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:13px;outline:none;}
+.form-hint{font-size:11px;color:var(--muted);margin-top:4px;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all 0.2s;text-decoration:none;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#5b21b6);color:#fff;box-shadow:0 0 20px var(--glow);}
+.btn-primary:hover{opacity:0.9;transform:translateY(-1px);}
+.btn-secondary{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text);}
+.btn-secondary:hover{border-color:var(--cyan);color:var(--cyan);}
+.btn-sm{padding:7px 14px;font-size:11px;}
+.btn-danger{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:var(--red);}
+.btn-danger:hover{background:var(--red);color:#fff;}
+.btn:disabled{opacity:0.4;cursor:not-allowed;transform:none !important;}
+
+/* INTEGRATION CARDS */
+.integration-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.int-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;}
+.int-logo{font-size:28px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:var(--surface);border-radius:10px;border:1px solid var(--border);}
+.int-title{font-size:15px;font-weight:800;}
+.int-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.int-status{margin-left:auto;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;}
+.int-connected{background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.25);}
+.int-disconnected{background:rgba(100,116,139,0.1);color:var(--muted);border:1px solid var(--border);}
+.int-body{padding:20px;}
+.int-note{background:rgba(6,182,212,0.05);border:1px solid rgba(6,182,212,0.15);border-radius:8px;padding:10px 14px;font-size:12px;color:#94a3b8;line-height:1.7;margin-bottom:16px;}
+
+/* UPGRADE BANNER */
+.upgrade-banner{background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(6,182,212,0.06));border:1px solid rgba(124,58,237,0.25);border-radius:12px;padding:20px 24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:24px;}
+.upgrade-banner h3{font-size:15px;font-weight:800;margin-bottom:4px;}
+.upgrade-banner p{font-size:12px;color:var(--muted);}
+
+/* TIER LOCK OVERLAY */
+.locked-overlay{text-align:center;padding:40px 20px;color:var(--muted);}
+.locked-overlay .lock-icon{font-size:36px;margin-bottom:12px;}
+.locked-overlay h3{font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.locked-overlay p{font-size:12px;line-height:1.7;margin-bottom:16px;}
+
+/* BILLING */
+.billing-card{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+.billing-tier-name{font-size:22px;font-weight:900;margin-bottom:4px;}
+.billing-price{font-size:14px;color:var(--muted);}
+.billing-renews{font-size:12px;color:var(--muted);margin-top:8px;}
+.billing-status{display:inline-block;padding:3px 10px;border-radius:5px;font-size:10px;font-weight:700;background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.25);}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 20px;font-size:13px;font-weight:600;z-index:2000;opacity:0;transform:translateY(10px);transition:all 0.3s;pointer-events:none;max-width:300px;}
+#toast.show{opacity:1;transform:translateY(0);}
+#toast.success{border-color:var(--green);color:var(--green);}
+#toast.error{border-color:var(--red);color:var(--red);}
+#toast.warning{border-color:var(--yellow);color:var(--yellow);}
+
+/* MOBILE TOPBAR */
+.mobile-topbar{display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;}
+@media(max-width:768px){.mobile-topbar{display:flex;}}
+.hamburger{background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="mobile-topbar">
+  <button class="hamburger" onclick="toggleSidebar()">☰</button>
+  <span style="font-size:13px;font-weight:800;letter-spacing:2px;">QUANTUM SOCIAL</span>
+  <span id="mobile-tier" style="font-size:10px;font-weight:700;color:var(--cyan);"></span>
+</div>
+
+<div class="shell">
+
+<!-- ── SIDEBAR ──────────────────────────────────────────── -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <span class="sidebar-glyph">⊗</span>
+    <span class="sidebar-name">QUANTUM SOCIAL</span>
+  </div>
+
+  <div class="sidebar-tier">
+    <div class="sidebar-tier-label">Current Tier</div>
+    <div class="sidebar-tier-name" id="tier-display">Loading...</div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">Core</div>
+    <a class="nav-item active" onclick="showPage('overview',this)">
+      <span class="icon">◈</span> Overview
+    </a>
+    <a class="nav-item" onclick="showPage('accounts',this)">
+      <span class="icon">⚡</span> Social Accounts
+    </a>
+    <a class="nav-item" onclick="showPage('features',this)">
+      <span class="icon">◎</span> My Features
+    </a>
+
+    <div class="nav-section">Automation</div>
+    <a class="nav-item" id="nav-n8n" onclick="showPage('n8n',this)">
+      <span class="icon">⟳</span> n8n Workflows
+    </a>
+    <a class="nav-item" id="nav-blender" onclick="showPage('blender',this)">
+      <span class="icon">◬</span> Blender / Video
+    </a>
+    <a class="nav-item" id="nav-swarms" onclick="showPage('swarms',this)">
+      <span class="icon">◆</span> Agent Swarms
+      <span class="nav-badge" id="swarms-badge">OMEGA</span>
+    </a>
+
+    <div class="nav-section">Account</div>
+    <a class="nav-item" onclick="showPage('settings',this)">
+      <span class="icon">◯</span> Settings
+    </a>
+    <a class="nav-item" onclick="showPage('billing',this)">
+      <span class="icon">◇</span> Billing
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <div class="user-email" id="user-email">Loading...</div>
+      <button class="btn-logout-small" onclick="logout()">✕</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN CONTENT ─────────────────────────────────────── -->
+<div class="main">
+
+  <!-- OVERVIEW -->
+  <div class="page active" id="page-overview">
+    <div class="page-header">
+      <div class="page-title" id="welcome-title">Welcome back.</div>
+      <div class="page-sub">Your Quantum Social command center.</div>
+    </div>
+
+    <div class="grid-4" style="margin-bottom:24px;">
+      <div class="card">
+        <div class="card-title">Tier</div>
+        <div class="stat-val" id="ov-tier" style="font-size:20px;">—</div>
+        <div class="stat-sub" id="ov-renews">—</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Accounts Connected</div>
+        <div class="stat-val" id="ov-accounts">—</div>
+        <div class="stat-sub" id="ov-limit">of — allowed</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Integrations</div>
+        <div class="stat-val" id="ov-integrations">—</div>
+        <div class="stat-sub">connected</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Status</div>
+        <div class="stat-val" id="ov-status" style="font-size:18px;color:var(--green);">Active</div>
+        <div class="stat-sub">All systems operational</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">What's in your tier</div>
+        <div class="feature-list" id="ov-features">
+          <div style="color:var(--muted);font-size:13px;">Loading features...</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Quick Actions</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <button class="btn btn-secondary" onclick="showPage('accounts',document.querySelector('[onclick*=accounts]'))">⚡ Connect Social Account</button>
+          <button class="btn btn-secondary" onclick="showPage('n8n',document.querySelector('[onclick*=n8n]'))">⟳ Set Up n8n Workflow</button>
+          <button class="btn btn-secondary" onclick="showPage('billing',document.querySelector('[onclick*=billing]'))">◇ Manage Billing</button>
+          <a href="https://aeonmi.ai/quantum-social.html" class="btn btn-secondary" target="_blank">⊗ View Public Page</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOCIAL ACCOUNTS -->
+  <div class="page" id="page-accounts">
+    <div class="page-header">
+      <div class="page-title">Social Accounts</div>
+      <div class="page-sub">Connect your TikTok and other platforms to the Quantum fleet.</div>
+    </div>
+
+    <div id="slot-meter-wrap" class="card" style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:12px;font-weight:700;color:var(--text);">Account Slots</span>
+        <span id="slot-text" style="font-size:12px;color:var(--muted);">0 / —</span>
+      </div>
+      <div class="slot-bar"><div class="slot-fill" id="slot-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="acct-list" id="acct-list">
+      <div style="color:var(--muted);font-size:13px;padding:16px 0;">Loading accounts...</div>
+    </div>
+
+    <button class="btn btn-primary btn-sm" onclick="toggleAddAccount()" id="add-acct-btn">+ Add Account</button>
+
+    <div class="add-acct-form" id="add-acct-form" style="margin-top:14px;">
+      <div class="form-group">
+        <label class="form-label">Platform</label>
+        <select class="form-select" id="acct-platform">
+          <option value="tiktok">TikTok</option>
+          <option value="instagram">Instagram</option>
+          <option value="youtube">YouTube</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Handle / Username</label>
+        <input class="form-input" id="acct-handle" placeholder="@yourhandle">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Platform Account ID (optional)</label>
+        <input class="form-input" id="acct-platform-id" placeholder="Found in platform settings">
+        <div class="form-hint">Used for API-level operations. Can be added later.</div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-primary btn-sm" onclick="addAccount()">Connect</button>
+        <button class="btn btn-secondary btn-sm" onclick="toggleAddAccount()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <div class="page" id="page-features">
+    <div class="page-header">
+      <div class="page-title">My Features</div>
+      <div class="page-sub">Everything included in your current tier.</div>
+    </div>
+    <div class="feature-list" id="full-features">
+      <div style="color:var(--muted);font-size:13px;">Loading...</div>
+    </div>
+    <div style="margin-top:24px;" id="upgrade-cta"></div>
+  </div>
+
+  <!-- N8N WORKFLOWS -->
+  <div class="page" id="page-n8n">
+    <div class="page-header">
+      <div class="page-title">n8n Workflows</div>
+      <div class="page-sub">Connect your self-hosted or cloud n8n instance to automate your TikTok operations.</div>
+    </div>
+
+    <div class="integration-card" style="margin-bottom:20px;">
+      <div class="int-header">
+        <div class="int-logo">⟳</div>
+        <div>
+          <div class="int-title">n8n Connection</div>
+          <div class="int-sub">Self-hosted or n8n.cloud — you provide the instance</div>
+        </div>
+        <div class="int-status int-disconnected" id="n8n-status-badge">Not connected</div>
+      </div>
+      <div class="int-body">
+        <div class="int-note">
+          <strong>You host it, you own it.</strong> Enter your n8n instance URL and API key below.
+          Quantum Social will send webhook triggers to your workflows — you define the automation logic.
+          Your API key is encrypted and never logged.
+        </div>
+        <div class="form-group">
+          <label class="form-label">n8n Instance URL</label>
+          <input class="form-input" id="n8n-url" placeholder="https://your-n8n-instance.com or https://yourname.app.n8n.cloud">
+          <div class="form-hint">Include https://. For n8n.cloud: https://[yourname].app.n8n.cloud</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">n8n API Key</label>
+          <input class="form-input" type="password" id="n8n-key" placeholder="n8n_api_xxxxxxxx">
+          <div class="form-hint">Settings → n8n API in your n8n dashboard. Key is encrypted at rest.</div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-primary btn-sm" onclick="saveIntegration('n8n')">Save Connection</button>
+          <button class="btn btn-secondary btn-sm" onclick="testIntegration('n8n')">Test Connection</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Quantum Social Webhook Triggers</div>
+      <p style="font-size:12px;color:var(--muted);line-height:1.8;margin-bottom:14px;">
+        Once connected, use these webhook events in your n8n workflows.
+        Set up a Webhook node in n8n and point it at your workflow's webhook URL.
+        Quantum Social will POST to these endpoints automatically.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:8px;" id="n8n-webhooks">
+        <div class="feature-row">
+          <span class="feature-icon">⚡</span>
+          <span class="feature-name"><code style="color:var(--cyan);font-size:11px;">trend.detected</code> — New viral trend identified</span>
+        </div>
+        <div class="feature-row">
+          <span class="feature-icon">📊</span>
+          <span class="feature-name"><code style="color:var(--cyan);font-size:11px;">post.scheduled</code> — Content queued for posting</span>
+        </div>
+        <div class="feature-row">
+          <span class="feature-icon">🎯</span>
+          <span class="feature-name"><code style="color:var(--cyan);font-size:11px;">account.shadowban_risk</code> — Shadow-ban alert triggered</span>
+        </div>
+        <div class="feature-row">
+          <span class="feature-icon">💰</span>
+          <span class="feature-name"><code style="color:var(--cyan);font-size:11px;">revenue.event</code> — Revenue Singularity Engine event</span>
+        </div>
+        <div class="feature-row" id="n8n-swarm-webhook" style="display:none;">
+          <span class="feature-icon">◆</span>
+          <span class="feature-name"><code style="color:var(--yellow);font-size:11px;">swarm.complete</code> — Agent swarm task completed (OMEGA CORE)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="card-title">Import Ready-to-Use Workflow Templates</div>
+      <p style="font-size:12px;color:var(--muted);line-height:1.8;margin-bottom:14px;">
+        Download these JSON files and import them directly into your n8n instance
+        via Settings → Import Workflow.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-radius:8px;padding:12px 14px;">
+          <div>
+            <div style="font-size:13px;font-weight:700;">TikTok Trend Alert → Post Queue</div>
+            <div style="font-size:11px;color:var(--muted);">Detects trends, generates caption, queues post</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="requestDownload('n8n-trend-workflow.json')">Download</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-radius:8px;padding:12px 14px;">
+          <div>
+            <div style="font-size:13px;font-weight:700;">Revenue Singularity Engine → Notification</div>
+            <div style="font-size:11px;color:var(--muted);">Monitors revenue events, sends alerts</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="requestDownload('n8n-revenue-workflow.json')">Download</button>
+        </div>
+        <div id="n8n-omega-templates" style="display:none;">
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-radius:8px;padding:12px 14px;margin-top:8px;">
+            <div>
+              <div style="font-size:13px;font-weight:700;">9-Agent Swarm Orchestrator</div>
+              <div style="font-size:11px;color:var(--yellow);">OMEGA CORE — Full autonomous swarm workflow</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="requestDownload('n8n-swarm-orchestrator.json')">Download</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLENDER / VIDEO -->
+  <div class="page" id="page-blender">
+    <div class="page-header">
+      <div class="page-title">Blender / Video Generation</div>
+      <div class="page-sub">Connect your own Blender setup for 3D asset and video pipeline automation.</div>
+    </div>
+
+    <div class="integration-card" style="margin-bottom:20px;">
+      <div class="int-header">
+        <div class="int-logo">◬</div>
+        <div>
+          <div class="int-title">Blender Remote API</div>
+          <div class="int-sub">Requires Blender + QS Python Addon on your machine</div>
+        </div>
+        <div class="int-status int-disconnected" id="blender-status-badge">Not connected</div>
+      </div>
+      <div class="int-body">
+        <div class="int-note">
+          <strong>How this works:</strong> Install the Quantum Social Blender Addon (download below)
+          on your machine. It runs a lightweight local server that accepts render jobs from Quantum Social.
+          You provide the local or tunneled endpoint URL below.
+          <br><br>
+          <strong>Recommended tunnel:</strong> <a href="https://ngrok.com" target="_blank" style="color:var(--cyan);">ngrok</a> or
+          <a href="https://cloudflare.com/products/tunnel" target="_blank" style="color:var(--cyan);">Cloudflare Tunnel</a>
+          to expose your local Blender server securely.
+        </div>
+        <div class="form-group">
+          <label class="form-label">Blender API Endpoint</label>
+          <input class="form-input" id="blender-url" placeholder="https://your-tunnel.ngrok.io or http://localhost:8765">
+          <div class="form-hint">URL where the QS Blender Addon is listening.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">API Token (set in addon config)</label>
+          <input class="form-input" type="password" id="blender-key" placeholder="qs_blender_xxxxxxxx">
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+          <button class="btn btn-primary btn-sm" onclick="saveIntegration('blender')">Save Connection</button>
+          <button class="btn btn-secondary btn-sm" onclick="testIntegration('blender')">Test Connection</button>
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:14px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px;">Blender Addon Setup</div>
+          <button class="btn btn-secondary btn-sm" onclick="requestDownload('qs-blender-addon.zip')">⬇ Download QS Blender Addon</button>
+          <div class="form-hint" style="margin-top:6px;">Install via Blender → Edit → Preferences → Add-ons → Install. Then enable "Quantum Social Remote" and set your token.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Supported Operations</div>
+      <div class="feature-list">
+        <div class="feature-row"><span class="feature-icon">🎬</span><span class="feature-name">Render video from template scene</span><span class="feature-status fs-on">SUPPORTED</span></div>
+        <div class="feature-row"><span class="feature-icon">🖼</span><span class="feature-name">Export frame as thumbnail</span><span class="feature-status fs-on">SUPPORTED</span></div>
+        <div class="feature-row"><span class="feature-icon">🧬</span><span class="feature-name">Avatar geometry node export</span><span class="feature-status fs-on">SUPPORTED</span></div>
+        <div class="feature-row"><span class="feature-icon">⚡</span><span class="feature-name">Batch render queue</span><span class="feature-status fs-partial">BETA</span></div>
+        <div class="feature-row"><span class="feature-icon">🔄</span><span class="feature-name">Auto-upload to TikTok after render</span><span class="feature-status fs-partial">ROADMAP</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AGENT SWARMS -->
+  <div class="page" id="page-swarms">
+    <div class="page-header">
+      <div class="page-title">Agent Swarms</div>
+      <div class="page-sub">Autonomous AI agents working your TikTok strategy 24/7.</div>
+    </div>
+    <div id="swarms-content">
+      <!-- Populated by JS based on tier -->
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page" id="page-settings">
+    <div class="page-header">
+      <div class="page-title">Settings</div>
+      <div class="page-sub">Update your profile and account preferences.</div>
+    </div>
+    <div class="card" style="max-width:560px;">
+      <div class="card-title">Profile</div>
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" id="settings-name" placeholder="Your name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" id="settings-email" disabled style="opacity:0.5;">
+        <div class="form-hint">Email cannot be changed here. Contact support.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone (for SMS alerts)</label>
+        <input class="form-input" id="settings-phone" placeholder="+1 555 000 0000">
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="saveSettings()">Save Profile</button>
+    </div>
+    <div class="card" style="max-width:560px;margin-top:16px;">
+      <div class="card-title" style="color:var(--red);">Danger Zone</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">
+        These actions are irreversible. Contact support@aeonmi.ai before proceeding.
+      </p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-danger btn-sm" onclick="alert('Contact support@aeonmi.ai to delete your account.')">Delete Account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BILLING -->
+  <div class="page" id="page-billing">
+    <div class="page-header">
+      <div class="page-title">Billing</div>
+      <div class="page-sub">Manage your subscription and payment method.</div>
+    </div>
+    <div class="card" style="max-width:600px;margin-bottom:20px;">
+      <div class="card-title">Current Plan</div>
+      <div class="billing-card">
+        <div>
+          <div class="billing-tier-name" id="bill-tier-name">—</div>
+          <div class="billing-price" id="bill-price">—</div>
+          <div style="margin-top:8px;"><span class="billing-status" id="bill-status">Active</span></div>
+          <div class="billing-renews" id="bill-renews"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <a id="stripe-portal-btn" href="#" class="btn btn-secondary btn-sm" onclick="openStripePortal(event)">
+            Manage Subscription
+          </a>
+          <a href="https://aeonmi.ai/quantum-social.html#pricing" class="btn btn-primary btn-sm">
+            Upgrade Plan
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="max-width:600px;">
+      <div class="card-title">Need Help?</div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.8;">
+        For billing issues, refunds, or plan changes, email
+        <a href="mailto:support@aeonmi.ai" style="color:var(--cyan);">support@aeonmi.ai</a>.
+        Include your email address and account tier in the subject line.
+      </p>
+    </div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<div id="toast"></div>
+
+<!-- ── DOWNLOAD REQUEST MODAL ──────────────────────────── -->
+<div id="dl-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px;width:100%;max-width:440px;margin:16px;">
+    <h3 style="font-size:16px;font-weight:800;margin-bottom:6px;">Request Download</h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">Downloads are manually reviewed. We'll send you the file once approved.</p>
+    <input type="hidden" id="dl-item">
+    <div class="form-group">
+      <label class="form-label">Full Name</label>
+      <input class="form-input" id="dl-name" placeholder="Your name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" id="dl-email" placeholder="you@email.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Message (optional)</label>
+      <input class="form-input" id="dl-message" placeholder="What will you use this for?">
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-primary btn-sm" onclick="submitDownloadRequest()">Submit Request</button>
+      <button class="btn btn-secondary btn-sm" onclick="closeDlModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG — update with your Supabase values ──────────────
+const SUPABASE_URL  = "https://qdnijmpcedgrpalnlojp.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkbmlqbXBjZWRncnBhbG5sb2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3MTE2NDgsImV4cCI6MjA4NDI4NzY0OH0.3MXwffoZRvDBGLUCBrKSfy0F-O5ZCtMk-tSWyvFMpNo";
+const FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
+
+let userToken    = null;
+let userProfile  = null;
+let userFeatures = null;
+let socialAccounts = [];
+let integrations = {};
+
+// ── Supabase Auth Client (minimal, no SDK needed) ──────────
+async function getSession() {
+  // Try localStorage for Supabase session
+  const raw = localStorage.getItem(`sb-${SUPABASE_URL.split('//')[1].split('.')[0]}-auth-token`);
+  if (!raw) return null;
+  try {
+    const session = JSON.parse(raw);
+    if (session?.access_token && new Date(session.expires_at * 1000) > new Date()) {
+      return session;
+    }
+  } catch {}
+  return null;
+}
+
+async function apiCall(fn, body, token) {
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const r = await fetch(`${FUNCTIONS_URL}/${fn}`, { method: "POST", headers, body: JSON.stringify(body) });
+  if (!r.ok && r.status === 401) { redirectToLogin(); return null; }
+  return r.json();
+}
+
+// ── Toast ──────────────────────────────────────────────────
+function toast(msg, type = "success") {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className = "", 3500);
+}
+
+// ── Navigation ─────────────────────────────────────────────
+function showPage(id, el) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  document.getElementById(`page-${id}`)?.classList.add("active");
+  if (el) el.classList.add("active");
+  closeSidebar();
+}
+
+function toggleSidebar() { document.getElementById("sidebar").classList.toggle("open"); }
+function closeSidebar() { document.getElementById("sidebar").classList.remove("open"); }
+
+// ── Init ───────────────────────────────────────────────────
+async function init() {
+  const session = await getSession();
+  if (!session) { redirectToLogin(); return; }
+  userToken = session.access_token;
+
+  // Load profile
+  const data = await apiCall("user-profile", { action: "get_profile" }, userToken);
+  if (!data || data.error) { redirectToLogin(); return; }
+
+  userProfile  = data.profile;
+  userFeatures = data.features;
+
+  renderUI();
+  loadAccounts();
+  loadIntegrations();
+}
+
+function redirectToLogin() {
+  window.location.href = "/login.html";
+}
+
+function logout() {
+  const key = `sb-${SUPABASE_URL.split('//')[1].split('.')[0]}-auth-token`;
+  localStorage.removeItem(key);
+  window.location.href = "/login.html";
+}
+
+// ── Render UI from profile ─────────────────────────────────
+function renderUI() {
+  const p = userProfile;
+  const f = userFeatures;
+  const tier = p.tier ?? "none";
+  const tierLabel = { waveform: "WAVEFORM", entangle: "ENTANGLE", omega_core: "OMEGA CORE" }[tier] ?? "No active tier";
+  const tierColor = { waveform: "tier-color-waveform", entangle: "tier-color-entangle", omega_core: "tier-color-omega_core" }[tier] ?? "";
+
+  // Sidebar
+  const td = document.getElementById("tier-display");
+  td.textContent = tierLabel;
+  td.className = `sidebar-tier-name ${tierColor}`;
+  document.getElementById("mobile-tier").textContent = tierLabel;
+  document.getElementById("user-email").textContent = p.email ?? "";
+  const av = document.getElementById("user-avatar");
+  av.textContent = (p.full_name ?? p.email ?? "?")[0].toUpperCase();
+
+  // Overview
+  const fn = p.full_name?.split(" ")[0];
+  document.getElementById("welcome-title").textContent = fn ? `Welcome back, ${fn}.` : "Welcome back.";
+  document.getElementById("ov-tier").textContent = tierLabel;
+  document.getElementById("ov-tier").className = `stat-val ${tierColor}`;
+  const exp = p.tier_expires_at ? `Renews ${new Date(p.tier_expires_at).toLocaleDateString()}` : "";
+  document.getElementById("ov-renews").textContent = exp;
+
+  // Billing page
+  const prices = { waveform: "$39/mo", entangle: "$99/mo", omega_core: "$249/mo" };
+  document.getElementById("bill-tier-name").textContent = tierLabel;
+  document.getElementById("bill-tier-name").className = `billing-tier-name ${tierColor}`;
+  document.getElementById("bill-price").textContent = prices[tier] ?? "—";
+  document.getElementById("bill-renews").textContent = exp;
+
+  // Settings
+  document.getElementById("settings-name").value  = p.full_name ?? "";
+  document.getElementById("settings-email").value = p.email ?? "";
+  document.getElementById("settings-phone").value = p.phone ?? "";
+
+  // Feature lists
+  renderFeatures(f, tier);
+
+  // Tier-specific locks
+  applyTierLocks(tier, f);
+}
+
+function featureRows(f) {
+  if (!f) return [];
+  return [
+    { icon: "⚡", name: "Social Accounts", val: f.max_accounts === -1 ? "Unlimited" : f.max_accounts },
+    { icon: "🧠", name: "AI Content Intelligence", val: f.ai_content_intelligence === "full" ? "Full" : "Basic" },
+    { icon: "📡", name: "Algorithm Monitor", val: f.algorithm_monitor === "realtime" ? "Real-time" : "Daily" },
+    { icon: "🎯", name: "Hook & Retention Scoring", val: f.hook_retention_scoring },
+    { icon: "🛡", name: "Shadow-ban Scanner", val: f.shadowban_scanner },
+    { icon: "✍️", name: "SEO Caption & Hashtag Gen", val: f.seo_caption_hashtag },
+    { icon: "💰", name: "Revenue Singularity Engine", val: f.revenue_singularity },
+    { icon: "🌐", name: "Cross-Platform Adaptation", val: f.cross_platform },
+    { icon: "📅", name: "7-Day Campaign Planner", val: f.campaign_planner },
+    { icon: "📊", name: "RPS & CRS Scoring", val: f.rps_crs_scoring },
+    { icon: "🏆", name: "Priority Support", val: f.priority_support },
+    { icon: "⚛️", name: "Omega GodCore (30-day AI roadmap)", val: f.omega_godcore },
+    { icon: "◆", name: "9-Agent Autonomous Swarms", val: f.full_agent_swarms },
+    { icon: "🔮", name: "Quantum Annealing Product Ranker", val: f.quantum_annealing },
+    { icon: "🧬", name: "Mother AI Personality Export", val: f.mother_ai_export },
+    { icon: "⛓", name: "On-Chain Revenue Ledger", val: f.on_chain_ledger },
+    { icon: "📞", name: "White-Glove Onboarding Call", val: f.onboarding_call },
+    { icon: "👤", name: "Direct Founder Access", val: f.founder_access },
+  ];
+}
+
+function valToStatus(val) {
+  if (val === true || val === "full" || val === "full_autonomous" || val === "realtime" || val === "Unlimited")
+    return '<span class="feature-status fs-on">✓ Included</span>';
+  if (val === false || val === undefined || val === null)
+    return '<span class="feature-status fs-off">— Not included</span>';
+  if (typeof val === "number")
+    return `<span class="feature-status fs-on">${val}</span>`;
+  return `<span class="feature-status fs-partial">${val}</span>`;
+}
+
+function renderFeatures(f, tier) {
+  const rows = featureRows(f);
+  const ovEl = document.getElementById("ov-features");
+  const fullEl = document.getElementById("full-features");
+
+  const topRows = rows.slice(0, 5);
+  ovEl.innerHTML = topRows.map(r =>
+    `<div class="feature-row"><span class="feature-icon">${r.icon}</span><span class="feature-name">${r.name}</span>${valToStatus(r.val)}</div>`
+  ).join("") + (rows.length > 5 ? `<div style="font-size:12px;color:var(--muted);margin-top:8px;cursor:pointer;" onclick="showPage('features',document.querySelector('[onclick*=features]'))">View all ${rows.length} features →</div>` : "");
+
+  fullEl.innerHTML = rows.map(r =>
+    `<div class="feature-row"><span class="feature-icon">${r.icon}</span><span class="feature-name">${r.name}</span>${valToStatus(r.val)}</div>`
+  ).join("");
+
+  // Upgrade CTA
+  const upgEl = document.getElementById("upgrade-cta");
+  if (tier !== "omega_core") {
+    const next = tier === "waveform" ? { name: "ENTANGLE", price: "$99/mo" } : { name: "OMEGA CORE", price: "$249/mo" };
+    upgEl.innerHTML = `<div class="upgrade-banner"><div><h3>Unlock more power</h3><p>Upgrade to ${next.name} (${next.price}) for advanced features.</p></div><a href="https://aeonmi.ai/quantum-social.html#pricing" class="btn btn-primary btn-sm">Upgrade to ${next.name}</a></div>`;
+  }
+}
+
+function applyTierLocks(tier, f) {
+  // Agent swarms nav lock
+  if (!f?.full_agent_swarms) {
+    document.getElementById("nav-swarms").classList.add("nav-locked");
+  }
+
+  // Swarms page content
+  const swContent = document.getElementById("swarms-content");
+  if (f?.full_agent_swarms) {
+    document.getElementById("swarms-badge").style.display = "none";
+    swContent.innerHTML = `
+      <div class="card">
+        <div class="card-title">9-Agent Autonomous Swarm</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:16px;">
+          Your OMEGA CORE swarm is active. 9 agents run continuously: trend spotter,
+          content generator, scheduler, hook optimizer, shadow-ban monitor, revenue tracker,
+          competitor analyzer, cross-platform adapter, and conductor.
+        </p>
+        <div class="feature-list">
+          ${["Trend Spotter","Content Generator","Scheduler","Hook Optimizer","Shadow-ban Monitor","Revenue Tracker","Competitor Analyzer","Cross-Platform Adapter","Conductor"].map((a,i) =>
+            `<div class="feature-row"><span class="feature-icon">◆</span><span class="feature-name">Agent ${i+1}: ${a}</span><span class="feature-status fs-on">Online</span></div>`
+          ).join("")}
+        </div>
+      </div>`;
+    document.getElementById("n8n-swarm-webhook").style.display = "flex";
+    document.getElementById("n8n-omega-templates").style.display = "block";
+  } else {
+    swContent.innerHTML = `
+      <div class="locked-overlay">
+        <div class="lock-icon">◆</div>
+        <h3>Agent Swarms — OMEGA CORE Only</h3>
+        <p>Unlock 9 fully autonomous agents that run your TikTok strategy 24/7 without manual input.</p>
+        <a href="https://aeonmi.ai/quantum-social.html#pricing" class="btn btn-primary btn-sm">Upgrade to OMEGA CORE</a>
+      </div>`;
+  }
+}
+
+// ── Social Accounts ────────────────────────────────────────
+async function loadAccounts() {
+  const { data, error } = await supabaseQuery("social_accounts", "select=*&is_active=eq.true&order=connected_at.desc");
+  if (error) { console.error(error); return; }
+  socialAccounts = data ?? [];
+  renderAccounts();
+}
+
+async function supabaseQuery(table, query) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
+    headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${userToken}`, "Content-Type": "application/json" }
+  });
+  if (!r.ok) return { data: null, error: await r.text() };
+  return { data: await r.json(), error: null };
+}
+
+async function supabaseInsert(table, body) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: "POST",
+    headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${userToken}`, "Content-Type": "application/json", "Prefer": "return=representation" },
+    body: JSON.stringify(body)
+  });
+  return { ok: r.ok, data: await r.json() };
+}
+
+async function supabaseDelete(table, id) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: "DELETE",
+    headers: { "apikey": SUPABASE_ANON, "Authorization": `Bearer ${userToken}` }
+  });
+  return r.ok;
+}
+
+function renderAccounts() {
+  const f   = userFeatures;
+  const max = f?.max_accounts === -1 ? Infinity : (f?.max_accounts ?? 1);
+  const cur = socialAccounts.length;
+  const pct = max === Infinity ? 0 : Math.min(100, (cur / max) * 100);
+
+  document.getElementById("slot-text").textContent    = `${cur} / ${max === Infinity ? "∞" : max}`;
+  document.getElementById("slot-fill").style.width    = max === Infinity ? "10%" : `${pct}%`;
+  document.getElementById("ov-accounts").textContent  = cur;
+  document.getElementById("ov-limit").textContent     = `of ${max === Infinity ? "∞" : max} allowed`;
+
+  const list = document.getElementById("acct-list");
+  const platformIcons = { tiktok: "🎵", instagram: "📸", youtube: "▶️", other: "🌐" };
+  if (!socialAccounts.length) {
+    list.innerHTML = `<div style="color:var(--muted);font-size:13px;padding:16px 0;">No accounts connected yet. Add your first one below.</div>`;
+  } else {
+    list.innerHTML = socialAccounts.map(a => `
+      <div class="acct-card">
+        <div class="acct-icon">${platformIcons[a.platform] ?? "🌐"}</div>
+        <div class="acct-info">
+          <div class="acct-handle">${a.handle}</div>
+          <div class="acct-platform">${a.platform}</div>
+        </div>
+        <button class="acct-remove" onclick="removeAccount('${a.id}')">Remove</button>
+      </div>
+    `).join("");
+  }
+
+  // Disable add button if at limit
+  const addBtn = document.getElementById("add-acct-btn");
+  if (cur >= max) { addBtn.disabled = true; addBtn.textContent = `Slot limit reached (${max})`; }
+  else { addBtn.disabled = false; addBtn.textContent = "+ Add Account"; }
+}
+
+function toggleAddAccount() {
+  document.getElementById("add-acct-form").classList.toggle("open");
+}
+
+async function addAccount() {
+  const platform   = document.getElementById("acct-platform").value;
+  const handle     = document.getElementById("acct-handle").value.trim().replace(/^@/, "");
+  const platformId = document.getElementById("acct-platform-id").value.trim();
+  if (!handle) { toast("Enter a handle.", "error"); return; }
+
+  const { ok, data } = await supabaseInsert("social_accounts", {
+    user_id: userProfile.id, platform, handle: `@${handle}`,
+    platform_id: platformId || null, is_active: true
+  });
+
+  if (ok) {
+    toast(`@${handle} connected!`, "success");
+    toggleAddAccount();
+    document.getElementById("acct-handle").value = "";
+    document.getElementById("acct-platform-id").value = "";
+    await loadAccounts();
+  } else {
+    const msg = data?.message ?? "Could not add account.";
+    toast(msg.includes("limit") ? "Account slot limit reached for your tier." : msg, "error");
+  }
+}
+
+async function removeAccount(id) {
+  if (!confirm("Remove this account?")) return;
+  const ok = await supabaseDelete("social_accounts", id);
+  if (ok) { toast("Account removed.", "warning"); await loadAccounts(); }
+  else toast("Could not remove account.", "error");
+}
+
+// ── Integrations ────────────────────────────────────────────
+async function loadIntegrations() {
+  const { data } = await supabaseQuery("user_integrations", "select=*");
+  if (!data) return;
+  data.forEach(i => { integrations[i.integration_type] = i; });
+  updateIntegrationStatus("n8n");
+  updateIntegrationStatus("blender");
+  document.getElementById("ov-integrations").textContent = data.length;
+}
+
+function updateIntegrationStatus(type) {
+  const badge = document.getElementById(`${type}-status-badge`);
+  if (!badge) return;
+  if (integrations[type]?.is_verified) {
+    badge.textContent = "Connected"; badge.className = "int-status int-connected";
+  }
+  if (type === "n8n" && integrations.n8n?.endpoint_url) {
+    document.getElementById("n8n-url").value = integrations.n8n.endpoint_url;
+  }
+  if (type === "blender" && integrations.blender?.endpoint_url) {
+    document.getElementById("blender-url").value = integrations.blender.endpoint_url;
+  }
+}
+
+async function saveIntegration(type) {
+  const urlEl = document.getElementById(`${type}-url`);
+  const keyEl = document.getElementById(`${type}-key`);
+  if (!urlEl || !urlEl.value.trim()) { toast("Enter the endpoint URL.", "error"); return; }
+
+  const data = await apiCall("user-profile", {
+    action: "save_integration",
+    integration_type: type,
+    endpoint_url: urlEl.value.trim(),
+    api_key: keyEl?.value.trim() || null
+  }, userToken);
+
+  if (data?.ok) { toast("Integration saved.", "success"); await loadIntegrations(); }
+  else toast(data?.error ?? "Error saving.", "error");
+}
+
+async function testIntegration(type) {
+  const urlEl = document.getElementById(`${type}-url`);
+  if (!urlEl?.value) { toast("Save a URL first.", "warning"); return; }
+  toast("Testing connection...", "warning");
+  try {
+    const r = await fetch(`${urlEl.value.trim()}/ping`, { method: "GET", signal: AbortSignal.timeout(5000) });
+    if (r.ok) { toast("Connection successful!", "success"); }
+    else toast(`Endpoint responded with ${r.status}.`, "warning");
+  } catch {
+    toast("Could not reach endpoint. Check URL and ensure it's accessible.", "error");
+  }
+}
+
+// ── Settings ────────────────────────────────────────────────
+async function saveSettings() {
+  const data = await apiCall("user-profile", {
+    action: "update_profile",
+    full_name: document.getElementById("settings-name").value,
+    phone: document.getElementById("settings-phone").value
+  }, userToken);
+  if (data?.ok) toast("Profile saved.", "success");
+  else toast(data?.error ?? "Error.", "error");
+}
+
+// ── Billing ─────────────────────────────────────────────────
+async function openStripePortal(e) {
+  e.preventDefault();
+  // Stripe Customer Portal — generate URL via edge function (to be added)
+  toast("Opening billing portal...", "warning");
+  // Fallback: direct email
+  window.open("mailto:support@aeonmi.ai?subject=Billing%20Help", "_blank");
+}
+
+// ── Download Requests ────────────────────────────────────────
+function requestDownload(item) {
+  document.getElementById("dl-item").value = item;
+  document.getElementById("dl-name").value  = userProfile?.full_name ?? "";
+  document.getElementById("dl-email").value = userProfile?.email ?? "";
+  document.getElementById("dl-modal").style.display = "flex";
+}
+function closeDlModal() { document.getElementById("dl-modal").style.display = "none"; }
+
+async function submitDownloadRequest() {
+  const item    = document.getElementById("dl-item").value;
+  const name    = document.getElementById("dl-name").value.trim();
+  const email   = document.getElementById("dl-email").value.trim();
+  const message = document.getElementById("dl-message").value.trim();
+  if (!name || !email) { toast("Name and email required.", "error"); return; }
+
+  const data = await apiCall("download-request", {
+    full_name: name, email, requested_item: item,
+    message, tier: userProfile?.tier
+  }, userToken);
+
+  if (data?.ok) {
+    toast("Request submitted! Check your email.", "success");
+    closeDlModal();
+    document.getElementById("dl-message").value = "";
+  } else toast(data?.error ?? "Error submitting request.", "error");
+}
+
+// ── Boot ─────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

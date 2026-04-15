@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Control</title>
+<!-- No meta description, no OG tags, no sitemap reference -->
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
+<style>
+:root{--bg:#07070f;--surface:#0d0d1a;--card:#111120;--border:#1a1a2e;--accent:#7c3aed;--cyan:#06b6d4;--green:#10b981;--red:#ef4444;--yellow:#f59e0b;--text:#e2e8f0;--muted:#64748b;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5;}
+
+/* AUTH SCREEN */
+#auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;}
+.auth-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:48px;width:100%;max-width:380px;}
+.auth-glyph{font-size:32px;text-align:center;margin-bottom:20px;filter:drop-shadow(0 0 12px var(--accent));}
+.auth-title{font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;text-align:center;color:var(--muted);margin-bottom:32px;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:11px;font-weight:600;letter-spacing:1px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;}
+.field input{width:100%;background:#0a0a15;border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);font-size:14px;outline:none;transition:border-color 0.2s;}
+.field input:focus{border-color:var(--accent);}
+.btn{width:100%;padding:12px;border-radius:8px;border:none;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all 0.2s;margin-top:8px;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#5b21b6);color:#fff;}
+.btn-primary:hover{opacity:0.9;}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
+.auth-error{margin-top:12px;font-size:12px;color:var(--red);text-align:center;min-height:18px;}
+.auth-info{margin-top:12px;font-size:12px;color:var(--muted);text-align:center;}
+
+/* ADMIN PANEL */
+#admin-panel{display:none;padding:0;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;}
+.topbar-brand{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;letter-spacing:2px;}
+.topbar-brand span{filter:drop-shadow(0 0 6px var(--red));}
+.topbar-meta{font-size:11px;color:var(--muted);}
+.btn-logout{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:var(--red);padding:6px 14px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;}
+.btn-logout:hover{background:rgba(239,68,68,0.2);}
+.content{max-width:1200px;margin:0 auto;padding:32px;}
+
+/* SECTION */
+.section{margin-bottom:40px;}
+.section-title{font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+
+/* KILL SWITCHES */
+.kill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+.kill-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;align-items:center;justify-content:space-between;}
+.kill-label{font-size:12px;font-weight:600;color:var(--text);}
+.kill-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+.kill-toggle{position:relative;width:44px;height:24px;cursor:pointer;}
+.kill-toggle input{opacity:0;width:0;height:0;}
+.kill-slider{position:absolute;inset:0;background:#1a1a2e;border-radius:24px;transition:0.3s;}
+.kill-slider::before{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#64748b;left:3px;top:3px;transition:0.3s;}
+.kill-toggle input:checked + .kill-slider{background:rgba(239,68,68,0.3);}
+.kill-toggle input:checked + .kill-slider::before{transform:translateX(20px);background:var(--red);}
+.kill-active .kill-label{color:var(--red);}
+.kill-active{border-color:rgba(239,68,68,0.3);}
+
+/* MOTHER RECALL */
+.mother-panel{background:linear-gradient(135deg,rgba(124,58,237,0.08),rgba(239,68,68,0.05));border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:24px;display:flex;align-items:center;justify-content:space-between;gap:20px;}
+.mother-info h3{font-size:15px;font-weight:800;color:var(--text);margin-bottom:4px;}
+.mother-info p{font-size:12px;color:var(--muted);}
+.btn-recall{background:linear-gradient(135deg,#7f1d1d,#991b1b);color:#fca5a5;border:1px solid rgba(239,68,68,0.4);padding:10px 20px;border-radius:8px;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;text-transform:uppercase;}
+.btn-recall:hover{background:var(--red);color:#fff;}
+
+/* USERS TABLE */
+.users-toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.search-input{flex:1;min-width:200px;background:#0a0a15;border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--text);font-size:13px;outline:none;}
+.search-input:focus{border-color:var(--cyan);}
+.filter-btn{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:7px 14px;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;}
+.filter-btn.active,.filter-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border);padding:10px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;white-space:nowrap;}
+td{padding:10px 12px;border-bottom:1px solid rgba(30,30,50,0.5);vertical-align:middle;}
+tr:hover td{background:rgba(255,255,255,0.01);}
+.tier-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.tier-waveform{background:rgba(6,182,212,0.1);color:var(--cyan);border:1px solid rgba(6,182,212,0.3);}
+.tier-entangle{background:rgba(124,58,237,0.1);color:#a78bfa;border:1px solid rgba(124,58,237,0.3);}
+.tier-omega{background:rgba(245,158,11,0.1);color:var(--yellow);border:1px solid rgba(245,158,11,0.3);}
+.status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;}
+.dot-active{background:var(--green);}
+.dot-suspended{background:var(--yellow);}
+.dot-revoked{background:var(--red);}
+.dot-pending{background:var(--muted);}
+.user-actions{display:flex;gap:6px;}
+.act-btn{padding:4px 10px;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid transparent;transition:all 0.15s;}
+.act-revoke{background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.3);color:var(--red);}
+.act-revoke:hover{background:var(--red);color:#fff;}
+.act-restore{background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.3);color:var(--green);}
+.act-restore:hover{background:var(--green);color:#fff;}
+.act-tier{background:rgba(124,58,237,0.08);border-color:rgba(124,58,237,0.3);color:#a78bfa;}
+.act-tier:hover{background:var(--accent);color:#fff;}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;}
+.stat-label{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
+.stat-value{font-size:28px;font-weight:900;color:var(--text);}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+
+/* DOWNLOAD REQUESTS */
+.req-list{display:flex;flex-direction:column;gap:10px;}
+.req-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.req-info h4{font-size:13px;font-weight:700;margin-bottom:4px;}
+.req-info p{font-size:12px;color:var(--muted);}
+.req-actions{display:flex;gap:8px;flex-shrink:0;}
+
+/* TIER MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;display:none;}
+.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px;width:100%;max-width:400px;}
+.modal-title{font-size:15px;font-weight:800;margin-bottom:20px;}
+.modal-select{width:100%;background:#0a0a15;border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:13px;margin-bottom:16px;outline:none;}
+.modal-btns{display:flex;gap:10px;}
+.modal-btns .btn{flex:1;}
+.btn-cancel{background:var(--card);border:1px solid var(--border);color:var(--muted);}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 20px;font-size:13px;font-weight:600;z-index:2000;opacity:0;transform:translateY(10px);transition:all 0.3s;pointer-events:none;}
+#toast.show{opacity:1;transform:translateY(0);}
+#toast.success{border-color:var(--green);color:var(--green);}
+#toast.error{border-color:var(--red);color:var(--red);}
+#toast.warning{border-color:var(--yellow);color:var(--yellow);}
+</style>
+</head>
+<body>
+
+<!-- ── AUTH SCREEN ─────────────────────────────────────────── -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-glyph">⊗</div>
+    <div class="auth-title">System Access</div>
+
+    <!-- Step 1: Password -->
+    <div id="step-password">
+      <div class="field">
+        <label>Access Key</label>
+        <input type="password" id="pw-input" placeholder="••••••••••••" autocomplete="off">
+      </div>
+      <button class="btn btn-primary" id="pw-btn" onclick="submitPassword()">Continue</button>
+      <div class="auth-error" id="pw-error"></div>
+    </div>
+
+    <!-- Step 2: OTP (hidden initially) -->
+    <div id="step-otp" style="display:none;">
+      <div class="auth-info" style="margin-bottom:16px;">A one-time code was sent to your email.</div>
+      <div class="field">
+        <label>Verification Code</label>
+        <input type="text" id="otp-input" placeholder="000000" maxlength="6" autocomplete="off" inputmode="numeric">
+      </div>
+      <button class="btn btn-primary" id="otp-btn" onclick="submitOTP()">Verify</button>
+      <div class="auth-error" id="otp-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADMIN PANEL ─────────────────────────────────────────── -->
+<div id="admin-panel">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <span>⊗</span> QUANTUM SOCIAL — CONTROL
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div class="topbar-meta" id="session-meta">Session active</div>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- STATS -->
+    <div class="section">
+      <div class="section-title">Overview</div>
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-label">Total Users</div><div class="stat-value" id="stat-total">—</div></div>
+        <div class="stat-card"><div class="stat-label">Active</div><div class="stat-value" id="stat-active">—</div></div>
+        <div class="stat-card"><div class="stat-label">WAVEFORM</div><div class="stat-value" id="stat-waveform">—</div></div>
+        <div class="stat-card"><div class="stat-label">ENTANGLE</div><div class="stat-value" id="stat-entangle">—</div></div>
+        <div class="stat-card"><div class="stat-label">OMEGA CORE</div><div class="stat-value" id="stat-omega">—</div></div>
+        <div class="stat-card"><div class="stat-label">Revoked</div><div class="stat-value" id="stat-revoked" style="color:var(--red)">—</div></div>
+      </div>
+    </div>
+
+    <!-- MOTHER RECALL -->
+    <div class="section">
+      <div class="section-title">Mother AI — Emergency Recall</div>
+      <div class="mother-panel">
+        <div class="mother-info">
+          <h3>Mother Recall</h3>
+          <p>Severs all Mother AI connections, deactivates custom integrations, and activates the Mother kill switch. Irreversible until manually restored.</p>
+        </div>
+        <button class="btn-recall" onclick="motherRecall()">⚠ RECALL MOTHER</button>
+      </div>
+    </div>
+
+    <!-- KILL SWITCHES -->
+    <div class="section">
+      <div class="section-title">Kill Switches</div>
+      <div class="kill-grid" id="kill-grid">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="section">
+      <div class="section-title">Users</div>
+      <div class="users-toolbar">
+        <input class="search-input" id="user-search" placeholder="Search by email or name..." oninput="filterUsers()">
+        <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+        <button class="filter-btn" onclick="setFilter('active',this)">Active</button>
+        <button class="filter-btn" onclick="setFilter('revoked',this)">Revoked</button>
+        <button class="filter-btn" onclick="setFilter('suspended',this)">Suspended</button>
+        <button class="filter-btn" onclick="loadUsers()">↻ Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Status</th><th>Email</th><th>Name</th><th>Tier</th>
+            <th>Billing</th><th>Joined</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="users-tbody"><tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DOWNLOAD REQUESTS -->
+    <div class="section">
+      <div class="section-title">Download Requests</div>
+      <div class="req-list" id="req-list">
+        <div style="color:var(--muted);font-size:13px;">Loading...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TIER MODAL -->
+<div class="modal-overlay" id="tier-modal">
+  <div class="modal-box">
+    <div class="modal-title">Change User Tier</div>
+    <input type="hidden" id="modal-user-id">
+    <select class="modal-select" id="modal-tier-select">
+      <option value="">— Remove tier —</option>
+      <option value="waveform">WAVEFORM ($39/mo)</option>
+      <option value="entangle">ENTANGLE ($99/mo)</option>
+      <option value="omega_core">OMEGA CORE ($249/mo)</option>
+    </select>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="closeTierModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTier()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── Config ─────────────────────────────────────────────────
+// Update SUPABASE_URL and FUNCTIONS_URL with your project ref
+const SUPABASE_URL   = "https://qdnijmpcedgrpalnlojp.supabase.co";
+const FUNCTIONS_URL  = `${SUPABASE_URL}/functions/v1`;
+const SERVICE_ANON   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkbmlqbXBjZWRncnBhbG5sb2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3MTE2NDgsImV4cCI6MjA4NDI4NzY0OH0.3MXwffoZRvDBGLUCBrKSfy0F-O5ZCtMk-tSWyvFMpNo";  // anon key only — service key is never in frontend
+
+let adminToken  = null;
+let sessionId   = null;
+let allUsers    = [];
+let userFilter  = "all";
+
+// ── Toast ───────────────────────────────────────────────────
+function toast(msg, type = "success") {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className = "", 3000);
+}
+
+// ── Admin API call ──────────────────────────────────────────
+async function adminCall(fn, body) {
+  const res = await fetch(`${FUNCTIONS_URL}/${fn}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${adminToken}` },
+    body: JSON.stringify(body)
+  });
+  return res.json();
+}
+
+// ── AUTH ────────────────────────────────────────────────────
+async function submitPassword() {
+  const pw  = document.getElementById("pw-input").value;
+  const err = document.getElementById("pw-error");
+  const btn = document.getElementById("pw-btn");
+  if (!pw) { err.textContent = "Enter your access key."; return; }
+  btn.disabled = true; btn.textContent = "Verifying...";
+  try {
+    const res = await fetch(`${FUNCTIONS_URL}/admin-auth`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "login", password: pw })
+    });
+    const data = await res.json();
+    if (data.step === "otp_required") {
+      sessionId = data.session_id;
+      document.getElementById("step-password").style.display = "none";
+      document.getElementById("step-otp").style.display = "block";
+    } else {
+      err.textContent = data.error ?? "Authentication failed.";
+    }
+  } catch { err.textContent = "Connection error."; }
+  finally { btn.disabled = false; btn.textContent = "Continue"; }
+}
+
+async function submitOTP() {
+  const otp = document.getElementById("otp-input").value.trim();
+  const err = document.getElementById("otp-error");
+  const btn = document.getElementById("otp-btn");
+  if (!otp || otp.length !== 6) { err.textContent = "Enter the 6-digit code."; return; }
+  btn.disabled = true; btn.textContent = "Verifying...";
+  try {
+    const res = await fetch(`${FUNCTIONS_URL}/admin-auth`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "verify_otp", session_id: sessionId, otp })
+    });
+    const data = await res.json();
+    if (data.token) {
+      adminToken = data.token;
+      sessionStorage.setItem("qs_admin_token", adminToken);
+      enterPanel();
+    } else {
+      err.textContent = data.error ?? "Invalid code.";
+    }
+  } catch { err.textContent = "Connection error."; }
+  finally { btn.disabled = false; btn.textContent = "Verify"; }
+}
+
+async function checkExistingSession() {
+  const stored = sessionStorage.getItem("qs_admin_token");
+  if (!stored) return;
+  try {
+    const res = await fetch(`${FUNCTIONS_URL}/admin-auth`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "validate", token: stored })
+    });
+    const data = await res.json();
+    if (data.valid) { adminToken = stored; enterPanel(); }
+    else sessionStorage.removeItem("qs_admin_token");
+  } catch { /* ignore */ }
+}
+
+async function logout() {
+  if (adminToken) {
+    await fetch(`${FUNCTIONS_URL}/admin-auth`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "logout", token: adminToken })
+    }).catch(() => {});
+  }
+  sessionStorage.removeItem("qs_admin_token");
+  location.reload();
+}
+
+function enterPanel() {
+  document.getElementById("auth-screen").style.display = "none";
+  document.getElementById("admin-panel").style.display = "block";
+  document.getElementById("session-meta").textContent =
+    `Session: ${new Date().toLocaleTimeString()}`;
+  loadAll();
+}
+
+// ── LOAD ALL ────────────────────────────────────────────────
+function loadAll() {
+  loadKillSwitches();
+  loadUsers();
+  loadDownloadRequests();
+}
+
+// ── KILL SWITCHES ───────────────────────────────────────────
+async function loadKillSwitches() {
+  const data = await adminCall("kill-switch", { action: "status" });
+  const grid = document.getElementById("kill-grid");
+  if (!data.switches) { grid.innerHTML = "<div style='color:var(--red)'>Error loading kill switches</div>"; return; }
+
+  const labels = {
+    global:        { label: "Global Kill", sub: "Kills ALL access immediately" },
+    mother:        { label: "Mother AI", sub: "Severs Mother AI connections" },
+    tier_waveform: { label: "WAVEFORM Tier", sub: "Kills all WAVEFORM users" },
+    tier_entangle: { label: "ENTANGLE Tier", sub: "Kills all ENTANGLE users" },
+    tier_omega:    { label: "OMEGA CORE Tier", sub: "Kills all OMEGA users" },
+    api:           { label: "API Layer", sub: "Blocks all API requests" },
+    downloads:     { label: "Downloads", sub: "Blocks all download access" }
+  };
+
+  grid.innerHTML = data.switches.map(sw => `
+    <div class="kill-card ${sw.is_killed ? 'kill-active' : ''}" id="kc-${sw.target}">
+      <div>
+        <div class="kill-label">${labels[sw.target]?.label ?? sw.target}</div>
+        <div class="kill-sub">${labels[sw.target]?.sub ?? ''}</div>
+      </div>
+      <label class="kill-toggle">
+        <input type="checkbox" ${sw.is_killed ? 'checked' : ''}
+          onchange="toggleKill('${sw.target}', this.checked)">
+        <span class="kill-slider"></span>
+      </label>
+    </div>
+  `).join("");
+}
+
+async function toggleKill(target, kill) {
+  if (kill && !confirm(`CONFIRM: ${kill ? 'ACTIVATE' : 'RESTORE'} kill switch for "${target}"?`)) {
+    loadKillSwitches(); return;
+  }
+  const action = kill ? "activate" : "restore";
+  const data = await adminCall("kill-switch", { action, target });
+  if (data.ok) {
+    toast(data.message, kill ? "warning" : "success");
+    loadKillSwitches();
+  } else {
+    toast(data.error ?? "Error", "error");
+    loadKillSwitches();
+  }
+}
+
+async function motherRecall() {
+  if (!confirm("MOTHER RECALL: This will sever all Mother AI connections and activate the Mother kill switch. Proceed?")) return;
+  if (!confirm("FINAL CONFIRMATION: Are you absolutely sure?")) return;
+  const data = await adminCall("kill-switch", { action: "mother_recall", reason: "Owner initiated recall" });
+  if (data.ok) toast("Mother AI recalled. All connections severed.", "warning");
+  else toast(data.error ?? "Error", "error");
+  loadKillSwitches();
+}
+
+// ── USERS ────────────────────────────────────────────────────
+async function loadUsers() {
+  const tbody = document.getElementById("users-tbody");
+  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">Loading...</td></tr>`;
+
+  // Fetch via Supabase REST directly (using service role via edge function)
+  const data = await adminCall("user-profile", { action: "list_users" });
+  if (!data.users) { tbody.innerHTML = `<tr><td colspan="7" style="color:var(--red);padding:16px;">${data.error ?? "Error loading users"}</td></tr>`; return; }
+
+  allUsers = data.users;
+  updateStats(data.users);
+  renderUsers(data.users);
+}
+
+function updateStats(users) {
+  document.getElementById("stat-total").textContent     = users.length;
+  document.getElementById("stat-active").textContent    = users.filter(u => u.is_active).length;
+  document.getElementById("stat-waveform").textContent  = users.filter(u => u.tier === "waveform").length;
+  document.getElementById("stat-entangle").textContent  = users.filter(u => u.tier === "entangle").length;
+  document.getElementById("stat-omega").textContent     = users.filter(u => u.tier === "omega_core").length;
+  document.getElementById("stat-revoked").textContent   = users.filter(u => u.status === "revoked").length;
+}
+
+function tierBadge(tier) {
+  if (!tier) return '<span style="color:var(--muted);font-size:10px;">—</span>';
+  const cls = tier === "omega_core" ? "tier-omega" : `tier-${tier}`;
+  const lbl = tier === "omega_core" ? "OMEGA" : tier.toUpperCase();
+  return `<span class="tier-badge ${cls}">${lbl}</span>`;
+}
+
+function statusDot(status, isActive) {
+  if (status === "revoked") return '<span class="status-dot dot-revoked"></span>Revoked';
+  if (status === "suspended") return '<span class="status-dot dot-suspended"></span>Suspended';
+  if (isActive) return '<span class="status-dot dot-active"></span>Active';
+  return '<span class="status-dot dot-pending"></span>Inactive';
+}
+
+function renderUsers(users) {
+  const tbody = document.getElementById("users-tbody");
+  let filtered = users;
+  if (userFilter !== "all") filtered = users.filter(u => u.status === userFilter);
+  const search = document.getElementById("user-search").value.toLowerCase();
+  if (search) filtered = filtered.filter(u => (u.email + u.full_name).toLowerCase().includes(search));
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">No users found</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(u => `
+    <tr>
+      <td>${statusDot(u.status, u.is_active)}</td>
+      <td style="font-family:monospace;font-size:11px;">${u.email}</td>
+      <td>${u.full_name ?? '—'}</td>
+      <td>${tierBadge(u.tier)}</td>
+      <td style="font-size:11px;color:var(--muted);">${u.billing_cycle ?? '—'}</td>
+      <td style="font-size:11px;color:var(--muted);">${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
+      <td>
+        <div class="user-actions">
+          ${u.status !== "revoked"
+            ? `<button class="act-btn act-revoke" onclick="revokeUser('${u.id}','${u.email}')">Revoke</button>`
+            : `<button class="act-btn act-restore" onclick="restoreUser('${u.id}','${u.email}')">Restore</button>`
+          }
+          <button class="act-btn act-tier" onclick="openTierModal('${u.id}','${u.tier ?? ''}')">Tier</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function setFilter(f, btn) {
+  userFilter = f;
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  renderUsers(allUsers);
+}
+
+function filterUsers() { renderUsers(allUsers); }
+
+async function revokeUser(id, email) {
+  if (!confirm(`Revoke access for ${email}?`)) return;
+  const reason = prompt("Reason (optional):") ?? "Revoked by owner";
+  const data = await adminCall("kill-switch", { action: "revoke_user", user_id: id, reason });
+  if (data.ok) { toast(`${email} revoked`, "warning"); loadUsers(); }
+  else toast(data.error ?? "Error", "error");
+}
+
+async function restoreUser(id, email) {
+  if (!confirm(`Restore access for ${email}?`)) return;
+  const data = await adminCall("kill-switch", { action: "restore_user", user_id: id });
+  if (data.ok) { toast(`${email} restored`, "success"); loadUsers(); }
+  else toast(data.error ?? "Error", "error");
+}
+
+function openTierModal(userId, currentTier) {
+  document.getElementById("modal-user-id").value = userId;
+  document.getElementById("modal-tier-select").value = currentTier;
+  document.getElementById("tier-modal").style.display = "flex";
+}
+function closeTierModal() { document.getElementById("tier-modal").style.display = "none"; }
+
+async function saveTier() {
+  const userId = document.getElementById("modal-user-id").value;
+  const tier   = document.getElementById("modal-tier-select").value;
+  const data   = await adminCall("user-profile", { action: "set_tier", user_id: userId, tier });
+  if (data.ok) { toast("Tier updated", "success"); closeTierModal(); loadUsers(); }
+  else toast(data.error ?? "Error", "error");
+}
+
+// ── DOWNLOAD REQUESTS ─────────────────────────────────────
+async function loadDownloadRequests() {
+  const list = document.getElementById("req-list");
+  const data = await adminCall("user-profile", { action: "list_download_requests" });
+  if (!data.requests) { list.innerHTML = "<div style='color:var(--red)'>Error loading requests</div>"; return; }
+  if (!data.requests.length) { list.innerHTML = "<div style='color:var(--muted);font-size:13px;'>No pending requests.</div>"; return; }
+
+  list.innerHTML = data.requests.map(r => `
+    <div class="req-card">
+      <div class="req-info">
+        <h4>${r.full_name} &lt;${r.email}&gt;</h4>
+        <p>Requested: <strong>${r.requested_item}</strong></p>
+        <p>${r.message ?? ""}</p>
+        <p style="margin-top:4px;font-size:10px;">${new Date(r.created_at).toLocaleString()}</p>
+      </div>
+      <div class="req-actions">
+        <span style="font-size:11px;padding:4px 10px;border-radius:5px;background:rgba(245,158,11,0.1);color:var(--yellow);">${r.status.toUpperCase()}</span>
+      </div>
+    </div>
+  `).join("");
+}
+
+// ── ENTER KEY SUPPORT ─────────────────────────────────────
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    if (document.getElementById("step-password").style.display !== "none") submitPassword();
+    else if (document.getElementById("step-otp").style.display !== "none") submitOTP();
+  }
+});
+
+// ── INIT ──────────────────────────────────────────────────
+checkExistingSession();
+</script>
+</body>
+</html>

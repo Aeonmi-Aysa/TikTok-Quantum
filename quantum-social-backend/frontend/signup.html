@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Create Account — Quantum Social</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root {
+    --bg: #050508;
+    --surface: #0d0d14;
+    --surface2: #13131e;
+    --border: #1e1e2e;
+    --accent: #7c3aed;
+    --accent2: #06b6d4;
+    --text: #e2e2f0;
+    --muted: #6b6b8a;
+    --danger: #ef4444;
+    --success: #22c55e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -40%;
+    right: -20%;
+    width: 80%;
+    height: 80%;
+    background: radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -40%;
+    left: -20%;
+    width: 80%;
+    height: 80%;
+    background: radial-gradient(circle, rgba(6,182,212,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    width: 100%;
+    max-width: 460px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .logo {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .logo-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 14px;
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+
+  .logo h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+  .logo p { color: var(--muted); font-size: 14px; margin-top: 4px; }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .form-group { margin-bottom: 20px; }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus { border-color: var(--accent); }
+  input::placeholder { color: var(--muted); }
+
+  .password-wrap {
+    position: relative;
+  }
+
+  .password-wrap input { padding-right: 44px; }
+
+  .toggle-pw {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .strength-bar {
+    height: 3px;
+    border-radius: 2px;
+    background: var(--border);
+    margin-top: 8px;
+    overflow: hidden;
+  }
+
+  .strength-fill {
+    height: 100%;
+    border-radius: 2px;
+    width: 0;
+    transition: width 0.3s, background-color 0.3s;
+  }
+
+  .strength-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    height: 14px;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 13px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #6d28d9);
+    color: #fff;
+  }
+
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .btn-outline:hover { border-color: var(--accent); background: rgba(124,58,237,0.05); }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .alert {
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 20px;
+    display: none;
+  }
+
+  .alert.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #f87171; }
+  .alert.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #4ade80; }
+  .alert.show { display: block; }
+
+  .terms {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 16px;
+    line-height: 1.6;
+  }
+
+  .terms a { color: var(--accent2); text-decoration: none; }
+  .terms a:hover { text-decoration: underline; }
+
+  .footer-link {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .footer-link a { color: var(--accent2); text-decoration: none; font-weight: 500; }
+  .footer-link a:hover { text-decoration: underline; }
+
+  .back-link {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 13px;
+  }
+
+  .back-link a { color: var(--muted); text-decoration: none; }
+  .back-link a:hover { color: var(--text); }
+
+  .spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Confirm email panel */
+  .confirm-panel {
+    text-align: center;
+  }
+
+  .confirm-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+  }
+
+  .confirm-panel h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .confirm-panel p {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+
+  .confirm-panel strong { color: var(--text); }
+
+  .oauth-icon { width: 20px; height: 20px; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">
+    <div class="logo-mark">⚛</div>
+    <h1>Quantum Social</h1>
+    <p>Create your account</p>
+  </div>
+
+  <div id="alert" class="alert"></div>
+
+  <!-- ── SIGNUP FORM ──────────────────────────────────── -->
+  <div id="signup-panel">
+
+    <!-- OAuth first (less friction) -->
+    <button class="btn btn-outline" onclick="signUpGoogle()">
+      <svg class="oauth-icon" viewBox="0 0 24 24" fill="none">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      Continue with Google
+    </button>
+
+    <button class="btn btn-outline" onclick="signUpGitHub()">
+      <svg class="oauth-icon" viewBox="0 0 24 24" fill="currentColor">
+        <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"/>
+      </svg>
+      Continue with GitHub
+    </button>
+
+    <div class="divider">or sign up with email</div>
+
+    <div class="form-row">
+      <div class="form-group" style="margin-bottom:0">
+        <label>First Name</label>
+        <input type="text" id="first-name" placeholder="Warren" autocomplete="given-name" />
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>Last Name</label>
+        <input type="text" id="last-name" placeholder="Smith" autocomplete="family-name" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="email-input" placeholder="you@example.com" autocomplete="email" />
+    </div>
+
+    <div class="form-group">
+      <label>Password</label>
+      <div class="password-wrap">
+        <input type="password" id="password-input" placeholder="Min. 8 characters"
+               autocomplete="new-password" oninput="checkStrength(this.value)" />
+        <button class="toggle-pw" onclick="togglePW('password-input', this)" tabindex="-1">👁</button>
+      </div>
+      <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+      <div class="strength-label" id="strength-label"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Confirm Password</label>
+      <div class="password-wrap">
+        <input type="password" id="confirm-input" placeholder="Same password again"
+               autocomplete="new-password" />
+        <button class="toggle-pw" onclick="togglePW('confirm-input', this)" tabindex="-1">👁</button>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="signup-btn" onclick="signUpEmail()">
+      Create Account
+    </button>
+
+    <p class="terms">
+      By creating an account you agree to our
+      <a href="https://aeonmi.ai/terms" target="_blank">Terms of Service</a>
+      and <a href="https://aeonmi.ai/privacy" target="_blank">Privacy Policy</a>.
+    </p>
+  </div>
+
+  <!-- ── CONFIRM EMAIL PANEL ──────────────────────────── -->
+  <div id="confirm-panel" class="confirm-panel" style="display:none">
+    <div class="confirm-icon">📬</div>
+    <h2>Check your email</h2>
+    <p>
+      We sent a confirmation link to<br/>
+      <strong id="confirm-email"></strong><br/><br/>
+      Click the link in that email to activate your account.
+      It may take a minute to arrive.
+    </p>
+    <button class="btn btn-outline" onclick="resendConfirmation()" id="resend-confirm-btn">
+      Resend Email
+    </button>
+    <p style="margin-top:16px;font-size:13px;color:var(--muted)">
+      Wrong email? <a href="signup.html" style="color:var(--accent2);text-decoration:none">Start over</a>
+    </p>
+  </div>
+
+  <div class="footer-link">
+    Already have an account? <a href="login.html">Sign in</a>
+  </div>
+
+  <div class="back-link">
+    <a href="https://aeonmi.ai">← Back to aeonmi.ai</a>
+  </div>
+</div>
+
+<script>
+  // ── CONFIG ─────────────────────────────────────────────
+  const SUPABASE_URL  = "https://qdnijmpcedgrpalnlojp.supabase.co";
+  const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkbmlqbXBjZWRncnBhbG5sb2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3MTE2NDgsImV4cCI6MjA4NDI4NzY0OH0.3MXwffoZRvDBGLUCBrKSfy0F-O5ZCtMk-tSWyvFMpNo";
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+  // Redirect if already signed in
+  (async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) window.location.href = "dashboard.html";
+  })();
+
+  // ── ALERT ──────────────────────────────────────────────
+  function showAlert(msg, type = 'error') {
+    const el = document.getElementById('alert');
+    el.textContent = msg;
+    el.className = `alert ${type} show`;
+  }
+  function clearAlert() { document.getElementById('alert').className = 'alert'; }
+
+  // ── LOADING STATE ───────────────────────────────────────
+  function setLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    if (loading) {
+      btn._text = btn.innerHTML;
+      btn.innerHTML = '<div class="spinner"></div>';
+      btn.disabled = true;
+    } else {
+      btn.innerHTML = btn._text || btn.innerHTML;
+      btn.disabled = false;
+    }
+  }
+
+  // ── PASSWORD STRENGTH ───────────────────────────────────
+  function checkStrength(pw) {
+    const fill  = document.getElementById('strength-fill');
+    const label = document.getElementById('strength-label');
+    let score = 0;
+    if (pw.length >= 8) score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+    const levels = [
+      { w: '0%',   color: 'transparent', text: '' },
+      { w: '25%',  color: '#ef4444',     text: 'Weak' },
+      { w: '50%',  color: '#f97316',     text: 'Fair' },
+      { w: '75%',  color: '#eab308',     text: 'Good' },
+      { w: '100%', color: '#22c55e',     text: 'Strong' },
+    ];
+    const lvl = pw.length === 0 ? levels[0] : levels[score] || levels[1];
+    fill.style.width = lvl.w;
+    fill.style.backgroundColor = lvl.color;
+    label.textContent = lvl.text;
+    label.style.color = lvl.color;
+  }
+
+  // ── TOGGLE PASSWORD VISIBILITY ──────────────────────────
+  function togglePW(id, btn) {
+    const inp = document.getElementById(id);
+    if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+    else { inp.type = 'password'; btn.textContent = '👁'; }
+  }
+
+  // ── OAUTH ───────────────────────────────────────────────
+  async function signUpGoogle() {
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/dashboard.html` }
+    });
+    if (error) showAlert(error.message);
+  }
+
+  async function signUpGitHub() {
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: 'github',
+      options: { redirectTo: `${window.location.origin}/dashboard.html` }
+    });
+    if (error) showAlert(error.message);
+  }
+
+  // ── EMAIL SIGN UP ───────────────────────────────────────
+  let signedUpEmail = '';
+
+  async function signUpEmail() {
+    clearAlert();
+    const first    = document.getElementById('first-name').value.trim();
+    const last     = document.getElementById('last-name').value.trim();
+    const email    = document.getElementById('email-input').value.trim();
+    const password = document.getElementById('password-input').value;
+    const confirm  = document.getElementById('confirm-input').value;
+
+    if (!first || !last) return showAlert('First and last name are required.');
+    if (!email) return showAlert('Email is required.');
+    if (password.length < 8) return showAlert('Password must be at least 8 characters.');
+    if (password !== confirm) return showAlert('Passwords do not match.');
+
+    setLoading('signup-btn', true);
+
+    const { error } = await sb.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: `${first} ${last}` },
+        emailRedirectTo: `${window.location.origin}/dashboard.html`
+      }
+    });
+
+    setLoading('signup-btn', false);
+
+    if (error) return showAlert(error.message);
+
+    signedUpEmail = email;
+    document.getElementById('signup-panel').style.display = 'none';
+    document.getElementById('confirm-panel').style.display = '';
+    document.getElementById('confirm-email').textContent = email;
+  }
+
+  // ── RESEND CONFIRMATION ─────────────────────────────────
+  async function resendConfirmation() {
+    if (!signedUpEmail) return;
+    setLoading('resend-confirm-btn', true);
+    const { error } = await sb.auth.resend({ type: 'signup', email: signedUpEmail });
+    setLoading('resend-confirm-btn', false);
+    if (error) showAlert(error.message);
+    else showAlert('Confirmation email resent.', 'success');
+  }
+
+  // ── ENTER KEY ───────────────────────────────────────────
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && document.getElementById('signup-panel').style.display !== 'none') {
+      signUpEmail();
+    }
+  });
+</script>
+</body>
+</html>

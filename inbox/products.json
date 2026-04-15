@@ -1,0 +1,35 @@
+[
+  {
+    "product_id": "SKU_001",
+    "title": "Compact Air Fryer 3.5L",
+    "price_usd": 29.99,
+    "commission_rate": 0.15,
+    "rating": 4.7,
+    "ship_days": 3,
+    "category": "kitchen",
+    "notes": "Visual-proof ready. Can demo in 15s.",
+    "titan_score": 45.9
+  },
+  {
+    "product_id": "SKU_002",
+    "title": "Silicone Cooking Utensil Set",
+    "price_usd": 18.99,
+    "commission_rate": 0.12,
+    "rating": 4.5,
+    "ship_days": 4,
+    "category": "kitchen",
+    "notes": "Impulse price. Good before/after angle.",
+    "titan_score": 38.4
+  },
+  {
+    "product_id": "SKU_003",
+    "title": "Meal Prep Container 20pc Set",
+    "price_usd": 24.99,
+    "commission_rate": 0.18,
+    "rating": 4.8,
+    "ship_days": 3,
+    "category": "kitchen",
+    "notes": "High commission. Budget audience. Save-magnet content.",
+    "titan_score": 51.6
+  }
+]
